@@ -16,6 +16,15 @@ proc main() =
     echo "Usage: npsh [hosts] [options] <command>"
     echo "       npsh -a [options] <command>"
     echo "       npsh -a --test"
+    echo ""
+    echo "Examples:"
+    echo "  npsh 0 ls -la                    # Run 'ls -la' on node 0"
+    echo "  npsh high-steel,solution-nine uptime  # Run 'uptime' on specific hosts"
+    echo "  npsh -a -p df -h                 # Run 'df -h' on all hosts with prefixed output"
+    echo "  npsh -a --test                   # Test SSH connectivity to all hosts"
+    echo "  npsh 0,1 -d ls                   # Dry run: show what would be executed"
+    echo ""
+    echo "Arguments:"
     echo "  hosts: comma-separated list of host names or node IDs (e.g., '0,1' or 'host1,host2')"
     echo "  options:"
     echo "    -a: run command on all configured hosts"
@@ -23,6 +32,8 @@ proc main() =
     echo "    -d, --dry-run: show what would be done without executing"
     echo "    --test: test SSH connectivity by running 'true' command"
     echo "  command: command to run on remote hosts (not required with --test)"
+    echo ""
+    echo "Use 'npsh -h' for more help."
     quit(1)
 
   var hosts: seq[string]
@@ -39,6 +50,28 @@ proc main() =
         runOnAllHosts = true
       of "-d", "--dry-run":
         dryRun = true
+      of "-h", "--help":
+        echo "Usage: npsh [hosts] [options] <command>"
+        echo "       npsh -a [options] <command>"
+        echo "       npsh -a --test"
+        echo ""
+        echo "Examples:"
+        echo "  npsh 0 ls -la                    # Run 'ls -la' on node 0"
+        echo "  npsh high-steel,solution-nine uptime  # Run 'uptime' on specific hosts"
+        echo "  npsh -a -p df -h                 # Run 'df -h' on all hosts with prefixed output"
+        echo "  npsh -a --test                   # Test SSH connectivity to all hosts"
+        echo "  npsh 0,1 -d ls                   # Dry run: show what would be executed"
+        echo ""
+        echo "Arguments:"
+        echo "  hosts: comma-separated list of host names or node IDs (e.g., '0,1' or 'host1,host2')"
+        echo "  options:"
+        echo "    -a: run command on all configured hosts"
+        echo "    -p, --prefix: prefix output with host names"
+        echo "    -d, --dry-run: show what would be done without executing"
+        echo "    --test: test SSH connectivity by running 'true' command"
+        echo "    -h, --help: show this help message"
+        echo "  command: command to run on remote hosts (not required with --test)"
+        quit(0)
       of "-p", "--prefix":
         prefixOutput = true
       of "--test":

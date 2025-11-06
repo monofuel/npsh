@@ -1,7 +1,7 @@
 # npsh
 
 - A parallel shell implementation in Nim
-- Execute shell commands in parallel with proper error handling
+- Execute shell commands in parallel on remote hosts in a cluster
 
 ## Dependencies
 

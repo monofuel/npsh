@@ -1,5 +1,5 @@
-version     = "0.0.0"
-author      = "Your name"
+version     = "0.1.0"
+author      = "monofuel"
 description = "Nim parallel shell"
 license     = "MIT"
 
