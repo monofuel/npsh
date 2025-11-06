@@ -2,7 +2,7 @@
 
 import
   std/[strutils, os, sequtils],
-  npsh/[common, config]
+  npsh/[common, config, shell_exec]
 export
   common,
   config
@@ -27,11 +27,13 @@ proc main() =
 
   var hosts: seq[string]
   var hostArgIndex = -1
+  var commandArgs: seq[string]
 
-  # First pass: parse all options and find host argument
+  # First pass: parse all options and collect non-option arguments
   var i = 0
+  var collectingCommand = false
   while i < args.len:
-    if args[i].startsWith("-"):
+    if args[i].startsWith("-") and not collectingCommand:
       case args[i]
       of "-a":
         runOnAllHosts = true
@@ -45,10 +47,14 @@ proc main() =
         echo "Unknown option: ", args[i]
         quit(1)
     else:
-      # Found first non-option argument - this should be the hosts
-      if hostArgIndex == -1:
+      # Non-option argument or we're collecting command args
+      if hostArgIndex == -1 and not runOnAllHosts and not collectingCommand:
+        # First non-option argument is hosts
         hostArgIndex = i
-      # Keep processing in case there are more options after hosts
+      else:
+        # Additional arguments are part of the command
+        commandArgs.add(args[i])
+        collectingCommand = true
     i += 1
 
   # Load all hosts to resolve hostnames/node IDs
@@ -76,24 +82,30 @@ proc main() =
     # In test mode, use 'true' command
     command = @["true"]
   else:
-    # Command starts after the host argument (if any)
-    var commandStart = if hostArgIndex >= 0: hostArgIndex + 1 else: 0
-
-    if commandStart >= args.len:
+    if commandArgs.len == 0:
       echo "Error: no command specified"
       quit(1)
-    command = args[commandStart..^1]
+    command = commandArgs
 
-  # Execute or show dry run
+  # Execute command
   if dryRun:
-    echo "DRY RUN - Would execute: ", command.join(" ")
-    echo "DRY RUN - On hosts: ", hosts.join(", ")
-    echo "DRY RUN - Prefix output: ", prefixOutput
+    executeDryRun(hosts, command, prefixOutput)
   else:
-    # TODO: Execute command on hosts
-    echo "Would execute: ", command.join(" ")
-    echo "On hosts: ", hosts.join(", ")
-    echo "Prefix output: ", prefixOutput
+    # Convert hostnames back to Host objects for execution
+    var hostObjects: seq[Host] = @[]
+    for hostname in hosts:
+      # Find the host object by hostname
+      var found = false
+      for host in allHosts:
+        if host.hostname == hostname:
+          hostObjects.add(host)
+          found = true
+          break
+      if not found:
+        echo "Error: Host '", hostname, "' not found in configuration"
+        quit(1)
+
+    executeOnHosts(hostObjects, command, prefixOutput)
 
 when isMainModule:
   main()
