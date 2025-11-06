@@ -1,6 +1,6 @@
 version     = "0.0.0"
 author      = "Your name"
-description = "Description of your library"
+description = "Nim parallel shell"
 license     = "MIT"
 
 srcDir = "src"

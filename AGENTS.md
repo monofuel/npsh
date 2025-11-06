@@ -1,13 +1,13 @@
-# {PROJECT_NAME}
+# npsh
 
-- {PROJECT_DESCRIPTION}
-- {PROJECT_FOCUS}
+- A parallel shell implementation in Nim
+- Execute shell commands in parallel with proper error handling
 
 ## Dependencies
 
 - Nim >= 2.0.0
-- {PRIMARY_DEPENDENCY_DESCRIPTION}
-- {ADDITIONAL_DEPENDENCIES}
+- Standard Nim libraries for process management
+- No additional dependencies required
 
 ## Tests
 

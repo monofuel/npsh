@@ -1,4 +1,6 @@
-# You can use this nim template to jump start your nim library or project.
+# Nim Parallel Shell (npsh)
+
+A parallel shell implementation in Nim.
 
 This template includes:
 * MIT licence
