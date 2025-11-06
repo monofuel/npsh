@@ -72,7 +72,7 @@ Available keys:
 - `ip=address`: IP address to use (defaults to hostname if not specified)
 - `port=number`: SSH port (defaults to 22)
 - `username=name`: SSH username (defaults to current user)
-- `node=id`: Manual node ID assignment (auto-assigned if not specified)
+- `node=id`: Manual node ID assignment (auto-assigned based on line number if not specified, starting from 0)
 
 ### Example Configuration
 
@@ -110,6 +110,11 @@ Before using npsh, ensure:
    ```bash
    ssh-keyscan hostname >> ~/.ssh/known_hosts
    ```
+
+## TODO
+
+- [ ] `-s` sequential mode, run command on hosts one at a time
+- [ ] `-I {file}` `-O {file}` `-E {file}` redirect stdin, stdout, and stderr to on the remote host.
 
 ## License
 
