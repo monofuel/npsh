@@ -113,6 +113,9 @@ Before using npsh, ensure:
 
 ## TODO
 
+- [ ] npsh should preserve the CWD of the local shell
+  - npsh will assume similar folder structure (likely nfs mounted, syncthing, or similar) on the remote hosts
+  - add a cwd flag to allow the user to specify the CWD on the remote host
 - [ ] `-s` sequential mode, run command on hosts one at a time
 - [ ] `-I {file}` `-O {file}` `-E {file}` redirect stdin, stdout, and stderr to on the remote host.
 
