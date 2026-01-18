@@ -45,9 +45,10 @@ proc executeOnHost*(host: Host, command: seq[string], stdinData: string = ""): t
   except OSError:
     return ("SSH connection failed: " & getCurrentExceptionMsg(), -1)
 
-proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = "") =
+proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = ""): int =
   ## Execute command on multiple hosts, handling output formatting.
   ## stdinData: Data to pipe to the remote command's stdin (only works with single host)
+  ## Returns: 0 if all commands succeeded, 1 if any command failed
 
   # Validate single host when stdin is provided
   if stdinData.len > 0 and hosts.len > 1:
@@ -55,12 +56,13 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
     for host in hosts:
       hostNames.add(host.hostname)
     echo "Error: stdin mode (-i) only supports single host. Specified: ", hosts.len, " hosts (", hostNames.join(", "), "). Multiple host stdin support coming in future version."
-    quit(1)
+    return 1
 
   var maxHostLen = 0
   for host in hosts:
     maxHostLen = max(maxHostLen, host.hostname.len)
 
+  var overallExitCode = 0
   for host in hosts:
     let (output, exitCode) = executeOnHost(host, command, stdinData)
 
@@ -74,11 +76,14 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
       else:
         echo output
     else:
+      overallExitCode = 1
       if prefixOutput:
         let prefix = formatHostPrefix(host.hostname, maxHostLen)
         echo prefix, "ERROR (", exitCode, "): ", output.strip()
       else:
         echo "ERROR on ", host.hostname, " (", exitCode, "): ", output.strip()
+
+  return overallExitCode
 
 proc executeDryRun*(hosts: seq[string], command: seq[string], prefixOutput: bool) =
   ## Show what would be executed in dry run mode.

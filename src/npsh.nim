@@ -155,7 +155,8 @@ proc main() =
         echo "Error: Host '", hostname, "' not found in configuration"
         quit(1)
 
-    executeOnHosts(hostObjects, command, prefixOutput, stdinData)
+    let exitCode = executeOnHosts(hostObjects, command, prefixOutput, stdinData)
+    quit(exitCode)
 
 when isMainModule:
   main()
