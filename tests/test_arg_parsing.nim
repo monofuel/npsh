@@ -39,7 +39,7 @@ suite "Argument Parsing Tests":
     check exitCode == 0
 
   test "test mode":
-    let exitCode = runNpshWithArgs(@["-a", "--test"])
+    let exitCode = runNpshWithArgs(@["-d", "-a", "--test"])
     check exitCode == 0
 
   test "invalid option":
@@ -55,7 +55,7 @@ suite "Argument Parsing Tests":
     check exitCode == 1
 
   test "missing command with test mode":
-    let exitCode = runNpshWithArgs(@["-a", "--test"])
+    let exitCode = runNpshWithArgs(@["-d", "-a", "--test"])
     check exitCode == 0  # Test mode doesn't require command
 
   test "option ordering - options before hosts":
