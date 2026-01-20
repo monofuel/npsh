@@ -22,10 +22,11 @@ proc buildSshCommand*(host: Host, command: seq[string]): seq[string] =
 
   return cmd
 
-proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = "", prefix: string = ""): int =
+proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = "", prefix: string = "", streamStdin: bool = false): int =
   ## Execute command on a single host via SSH with streaming output.
   ## Returns exit code (0 for success, non-zero for failure).
   ## prefix: string to prepend to each line of output (for host identification)
+  ## streamStdin: if true, read from stdin incrementally instead of using stdinData
   let sshCmd = buildSshCommand(host, command)
 
   try:
@@ -34,10 +35,33 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
     let outputStream = process.outputStream
     let errorStream = process.errorStream
 
-    # Write stdin data if provided
+    # Handle stdin data
     if stdinData.len > 0:
+      # Write pre-read stdin data
       process.inputStream.write(stdinData)
       process.inputStream.close()
+    elif streamStdin:
+      # Stream stdin in a separate thread
+      # We need to create a proper thread procedure that doesn't capture closures
+      type StdinThreadData = ref object
+        inputStream: Stream
+
+      proc stdinThreadProc(data: StdinThreadData) {.thread.} =
+        try:
+          var stdinLine: string
+          while stdin.readLine(stdinLine):
+            data.inputStream.writeLine(stdinLine)
+          data.inputStream.close()
+        except OSError:
+          # Handle stdin read errors gracefully
+          try:
+            data.inputStream.close()
+          except:
+            discard
+
+      var threadData = StdinThreadData(inputStream: process.inputStream)
+      var stdinThread: Thread[StdinThreadData]
+      createThread(stdinThread, stdinThreadProc, threadData)
 
     # Stream stdout line by line
     var outputLine: string
@@ -64,13 +88,14 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
     stderr.writeLine(errorMsg)
     return -1
 
-proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = ""): int =
+proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = "", streamStdin: bool = false): int =
   ## Execute command on multiple hosts concurrently with streaming output.
   ## stdinData: Data to pipe to the remote command's stdin (only works with single host)
+  ## streamStdin: if true, read from stdin incrementally instead of using stdinData
   ## Returns: 0 if all commands succeeded, 1 if any command failed
 
   # Validate single host when stdin is provided
-  if stdinData.len > 0 and hosts.len > 1:
+  if (stdinData.len > 0 or streamStdin) and hosts.len > 1:
     var hostNames: seq[string] = @[]
     for host in hosts:
       hostNames.add(host.hostname)
@@ -90,8 +115,9 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
     let commandCopy = command # Capture command by value
     let stdinDataCopy = stdinData # Capture stdin data by value
     let prefixCopy = prefix # Capture prefix by value
+    let streamStdinCopy = streamStdin # Capture stream stdin flag by value
 
-    flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy))
+    flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy, streamStdinCopy))
 
   # Wait for all executions to complete and collect exit codes
   var overallExitCode = 0

@@ -126,20 +126,11 @@ proc main() =
       quit(1)
     command = commandArgs
 
-  # Read stdin data if stdin flag is set
-  var stdinData = ""
-  if useStdin:
-    try:
-      stdinData = stdin.readAll()
-    except OSError:
-      echo "Error: Failed to read from stdin: ", getCurrentExceptionMsg()
-      quit(1)
-
   # Execute command
   if dryRun:
     executeDryRun(hosts, command, prefixOutput)
     if useStdin:
-      echo "DRY RUN - Would pipe stdin data to remote command (", stdinData.len, " bytes)"
+      echo "DRY RUN - Would stream stdin data to remote command"
   else:
     # Convert hostnames back to Host objects for execution
     var hostObjects: seq[Host] = @[]
@@ -155,7 +146,7 @@ proc main() =
         echo "Error: Host '", hostname, "' not found in configuration"
         quit(1)
 
-    let exitCode = executeOnHosts(hostObjects, command, prefixOutput, stdinData)
+    let exitCode = executeOnHosts(hostObjects, command, prefixOutput, streamStdin=useStdin)
     quit(exitCode)
 
 when isMainModule:
