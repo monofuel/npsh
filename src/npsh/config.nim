@@ -21,6 +21,11 @@ proc parseHostLine*(line: string): Host =
     return nil
 
   let hostname = parts[0]
+
+  # Validate hostname - it shouldn't be a key=value pair (avoid simple mistakes)
+  if hostname.contains('='):
+    return nil
+
   var ip = ""
   var port = 22
   var username = ""

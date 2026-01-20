@@ -5,7 +5,8 @@ import
   npsh/[common, config, shell_exec]
 export
   common,
-  config
+  config,
+  shell_exec
 
 
 proc main() =

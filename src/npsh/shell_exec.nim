@@ -6,16 +6,17 @@ proc buildSshCommand*(host: Host, command: seq[string]): seq[string] =
   ## Build SSH command with proper options and remote command.
   var cmd = @["ssh", "-o", "BatchMode=yes"]
 
+  # Add port option if not default
+  if host.port != 22:
+    cmd.add("-p")
+    cmd.add($host.port)
+
   # Add host connection details
   let targetHost = if host.ip.len > 0: host.ip else: host.hostname
   if host.username.len > 0:
     cmd.add(host.username & "@" & targetHost)
   else:
     cmd.add(targetHost)
-
-  if host.port != 22:
-    cmd.add("-p")
-    cmd.add($host.port)
 
   # Add the remote command
   cmd.add(command.join(" "))
