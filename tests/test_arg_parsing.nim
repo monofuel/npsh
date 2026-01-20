@@ -1,10 +1,11 @@
 import
-  std/[unittest, osproc, strutils],
+  std/[unittest, osproc, strutils, os],
   npsh
 
-# Helper function to run npsh with specific arguments and get exit code
 proc runNpshWithArgs(args: seq[string]): int =
-  let cmd = "cd /home/monofuel/Documents/Projects/Monolab/npsh && ./src/npsh.out " & args.join(" ")
+  ## Run npsh with specific arguments and get exit code.
+  let npshPath = currentSourcePath().parentDir().parentDir() / "src" / "npsh.nim"
+  let cmd = "nim r " & npshPath & " " & args.join(" ")
   let exitCode = execCmd(cmd)
   return exitCode
 
