@@ -1,5 +1,5 @@
 import
-  std/[osproc, streams, strutils],
+  std/[osproc, streams, strutils, threadpool],
   ./config, ./common
 
 proc buildSshCommand*(host: Host, command: seq[string]): seq[string] =
@@ -22,31 +22,50 @@ proc buildSshCommand*(host: Host, command: seq[string]): seq[string] =
 
   return cmd
 
-proc executeOnHost*(host: Host, command: seq[string], stdinData: string = ""): tuple[output: string, exitCode: int] =
-  ## Execute command on a single host via SSH.
-  ## Returns (output, exitCode) tuple.
+proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = "", prefix: string = ""): int =
+  ## Execute command on a single host via SSH with streaming output.
+  ## Returns exit code (0 for success, non-zero for failure).
+  ## prefix: string to prepend to each line of output (for host identification)
   let sshCmd = buildSshCommand(host, command)
 
   try:
     let process = startProcess(sshCmd[0], args = sshCmd[1..^1],
-                              options = {poUsePath, poStdErrToStdOut})
+                              options = {poUsePath})
     let outputStream = process.outputStream
+    let errorStream = process.errorStream
 
     # Write stdin data if provided
     if stdinData.len > 0:
       process.inputStream.write(stdinData)
       process.inputStream.close()
 
-    let output = outputStream.readAll()
+    # Stream stdout line by line
+    var outputLine: string
+    while outputStream.readLine(outputLine):
+      if prefix.len > 0:
+        stdout.write(prefix)
+      stdout.writeLine(outputLine)
+
+    # Stream stderr line by line
+    var errorLine: string
+    while errorStream.readLine(errorLine):
+      if prefix.len > 0:
+        stderr.write(prefix)
+      stderr.writeLine(errorLine)
+
     let exitCode = process.waitForExit()
     process.close()
 
-    return (output.strip(), exitCode)
+    return exitCode
   except OSError:
-    return ("SSH connection failed: " & getCurrentExceptionMsg(), -1)
+    let errorMsg = "SSH connection failed: " & getCurrentExceptionMsg()
+    if prefix.len > 0:
+      stderr.write(prefix)
+    stderr.writeLine(errorMsg)
+    return -1
 
 proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = ""): int =
-  ## Execute command on multiple hosts, handling output formatting.
+  ## Execute command on multiple hosts concurrently with streaming output.
   ## stdinData: Data to pipe to the remote command's stdin (only works with single host)
   ## Returns: 0 if all commands succeeded, 1 if any command failed
 
@@ -62,26 +81,24 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
   for host in hosts:
     maxHostLen = max(maxHostLen, host.hostname.len)
 
-  var overallExitCode = 0
-  for host in hosts:
-    let (output, exitCode) = executeOnHost(host, command, stdinData)
+  # Spawn concurrent execution using threadpool
+  var flows: seq[FlowVar[int]] = @[]
 
-    if exitCode == 0:
-      if prefixOutput:
-        # Prefix each line of output
-        let lines = output.splitLines()
-        let prefix = formatHostPrefix(host.hostname, maxHostLen)
-        for line in lines:
-          echo prefix, line
-      else:
-        echo output
-    else:
+  for host in hosts:
+    let prefix = if prefixOutput: formatHostPrefix(host.hostname, maxHostLen) else: ""
+    let hostCopy = host # Capture host by value
+    let commandCopy = command # Capture command by value
+    let stdinDataCopy = stdinData # Capture stdin data by value
+    let prefixCopy = prefix # Capture prefix by value
+
+    flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy))
+
+  # Wait for all executions to complete and collect exit codes
+  var overallExitCode = 0
+  for flow in flows:
+    let exitCode = ^flow
+    if exitCode != 0:
       overallExitCode = 1
-      if prefixOutput:
-        let prefix = formatHostPrefix(host.hostname, maxHostLen)
-        echo prefix, "ERROR (", exitCode, "): ", output.strip()
-      else:
-        echo "ERROR on ", host.hostname, " (", exitCode, "): ", output.strip()
 
   return overallExitCode
 
