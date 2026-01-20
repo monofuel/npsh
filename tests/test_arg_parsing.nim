@@ -5,6 +5,9 @@ import
 proc runNpshWithArgs(args: seq[string]): int =
   ## Run npsh with specific arguments and get exit code.
   let npshPath = currentSourcePath().parentDir().parentDir() / "src" / "npsh.nim"
+  let configPath = currentSourcePath().parentDir() / "example_npsh"
+  # Set NPSH_CONFIG environment variable for the subprocess
+  putEnv("NPSH_CONFIG", configPath)
   let cmd = "nim r " & npshPath & " " & args.join(" ")
   let exitCode = execCmd(cmd)
   return exitCode

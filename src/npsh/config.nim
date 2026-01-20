@@ -68,8 +68,15 @@ proc assignNodeIds*(hosts: var seq[Host]) =
 
 proc loadConfig*(configPath = ""): seq[Host] =
   ## Load configuration from file.
-  ## Defaults to ~/.npsh if no path provided.
-  let path = if configPath == "": getHomeDir() / ".npsh" else: configPath
+  ## Defaults to ~/.npsh if no path provided, or NPSH_CONFIG environment variable.
+  let path = if configPath == "":
+    let envPath = getEnv("NPSH_CONFIG")
+    if envPath != "":
+      envPath
+    else:
+      getHomeDir() / ".npsh"
+  else:
+    configPath
 
   if not fileExists(path):
     raise newException(IOError, "Config file not found: " & path)
