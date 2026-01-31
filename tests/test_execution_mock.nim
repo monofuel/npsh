@@ -29,3 +29,4 @@ suite "Execution Logic Tests":
   # Note: Tests that require actual SSH execution are omitted as they would need
   # complex mocking or a test SSH server. The core logic (command building,
   # host resolution, argument parsing, output formatting) is tested elsewhere.
+  # monofuel note: maybe we could use docker or something to setup ssh hosts to test against?
