@@ -1,0 +1,6 @@
+nimTitle	config	npsh/config.html	module src/npsh/config		0
+nim	Host	npsh/config.html#Host	type Host		5
+nim	newHost	npsh/config.html#newHost,string,string,int,string,int	proc newHost(hostname: string; ip = ""; port = 22; username = ""; nodeId = -1): Host		13
+nim	parseHostLine	npsh/config.html#parseHostLine,string	proc parseHostLine(line: string): Host		17
+nim	assignNodeIds	npsh/config.html#assignNodeIds,seq[Host]	proc assignNodeIds(hosts: var seq[Host])		49
+nim	loadConfig	npsh/config.html#loadConfig,string	proc loadConfig(configPath = ""): seq[Host]		69

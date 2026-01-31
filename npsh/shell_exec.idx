@@ -1,0 +1,5 @@
+nimTitle	shell_exec	npsh/shell_exec.html	module src/npsh/shell_exec		0
+nim	buildSshCommand	npsh/shell_exec.html#buildSshCommand,Host,seq[string]	proc buildSshCommand(host: Host; command: seq[string]): seq[string]		5
+nim	streamExecuteOnHost	npsh/shell_exec.html#streamExecuteOnHost,Host,seq[string],string,string,bool	proc streamExecuteOnHost(host: Host; command: seq[string]; stdinData: string = "";\n                    prefix: string = ""; streamStdin: bool = false): int		26
+nim	executeOnHosts	npsh/shell_exec.html#executeOnHosts,seq[Host],seq[string],bool,string,bool	proc executeOnHosts(hosts: seq[Host]; command: seq[string]; prefixOutput: bool;\n               stdinData: string = ""; streamStdin: bool = false): int		92
+nim	executeDryRun	npsh/shell_exec.html#executeDryRun,seq[string],seq[string],bool	proc executeDryRun(hosts: seq[string]; command: seq[string]; prefixOutput: bool)		132
