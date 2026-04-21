@@ -77,3 +77,15 @@ suite "Argument Parsing Tests":
   test "multiple options combination":
     let exitCode = runNpshWithArgs(@["-d", "-p", "-a", "--test"])
     check exitCode == 0
+
+  test "cwd option short form":
+    let exitCode = runNpshWithArgs(@["-d", "-C", "/tmp", "-a", "ls"])
+    check exitCode == 0
+
+  test "cwd option long form":
+    let exitCode = runNpshWithArgs(@["-d", "--cwd", "/tmp", "-a", "ls"])
+    check exitCode == 0
+
+  test "cwd option missing argument":
+    let exitCode = runNpshWithArgs(@["-C"])
+    check exitCode == 1

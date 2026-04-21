@@ -40,13 +40,28 @@ suite "Shell Execution Tests":
     let cmd = buildSshCommand(host, @["bash", "-c", "echo 'multi word' && date"])
     check cmd == @["ssh", "-o", "BatchMode=yes", "server1", "bash -c echo 'multi word' && date"]
 
+  test "buildSshCommand with cwd":
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls", "-la"], "/tmp")
+    check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "cd /tmp && ls -la"]
+
+  test "buildSshCommand with empty cwd uses no cd":
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls", "-la"], "")
+    check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "ls -la"]
+
+  test "buildSshCommand with cwd containing spaces":
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls"], "/my path/dir")
+    check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "cd '/my path/dir' && ls"]
+
+  test "buildSshCommand with cwd and all host options":
+    let host = newHost("server", ip="10.0.0.1", port=2222, username="deploy")
+    let cmd = buildSshCommand(host, @["make", "build"], "/home/deploy/project")
+    check cmd == @["ssh", "-o", "BatchMode=yes", "-p", "2222", "deploy@10.0.0.1", "cd /home/deploy/project && make build"]
+
   test "executeDryRun output format":
-    # Capture stdout to test dry run output
-    # Note: This test would need output capture, but for now we'll test the function signature
     let hosts = @["host1", "host2", "host3"]
     let command = @["ls", "-la"]
     let prefixOutput = true
-
-    # executeDryRun just prints to stdout, so we can't easily test the output
-    # But we can ensure it doesn't crash with valid inputs
-    executeDryRun(hosts, command, prefixOutput)
+    executeDryRun(hosts, command, prefixOutput, "/tmp")

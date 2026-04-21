@@ -33,6 +33,7 @@ proc main() =
     echo "    -p, --prefix: prefix output with host names"
     echo "    -d, --dry-run: show what would be done without executing"
     echo "    -i, --stdin: read from stdin and pipe to remote command (single host only)"
+    echo "    -C, --cwd <dir>: set working directory on remote hosts (default: current directory)"
     echo "    --test: test SSH connectivity by running 'true' command"
     echo "  command: command to run on remote hosts (not required with --test)"
     echo ""
@@ -73,6 +74,7 @@ proc main() =
         echo "    -p, --prefix: prefix output with host names"
         echo "    -d, --dry-run: show what would be done without executing"
         echo "    -i, --stdin: read from stdin and pipe to remote command (single host only)"
+        echo "    -C, --cwd <dir>: set working directory on remote hosts (default: current directory)"
         echo "    --test: test SSH connectivity by running 'true' command"
         echo "    -h, --help: show this help message"
         echo "  command: command to run on remote hosts (not required with --test)"
@@ -81,6 +83,12 @@ proc main() =
         prefixOutput = true
       of "-i", "--stdin":
         useStdin = true
+      of "-C", "--cwd":
+        if i + 1 >= args.len:
+          echo "Error: -C/--cwd requires a directory argument"
+          quit(1)
+        i += 1
+        workDir = args[i]
       of "--test":
         testMode = true
       else:
@@ -96,6 +104,9 @@ proc main() =
         commandArgs.add(args[i])
         collectingCommand = true
     i += 1
+
+  if workDir.len == 0:
+    workDir = getCurrentDir()
 
   # Load all hosts to resolve hostnames/node IDs
   let allHosts = loadConfig()
@@ -129,7 +140,7 @@ proc main() =
 
   # Execute command
   if dryRun:
-    executeDryRun(hosts, command, prefixOutput)
+    executeDryRun(hosts, command, prefixOutput, workDir)
     if useStdin:
       echo "DRY RUN - Would stream stdin data to remote command"
   else:
@@ -147,7 +158,7 @@ proc main() =
         echo "Error: Host '", hostname, "' not found in configuration"
         quit(1)
 
-    let exitCode = executeOnHosts(hostObjects, command, prefixOutput, streamStdin=useStdin)
+    let exitCode = executeOnHosts(hostObjects, command, prefixOutput, streamStdin=useStdin, cwd=workDir)
     quit(exitCode)
 
 when isMainModule:

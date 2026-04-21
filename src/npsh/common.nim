@@ -10,6 +10,7 @@ var
   dryRun*: bool = false  ## Whether to perform a dry run (just show what would be done)
   testMode*: bool = false  ## Whether to run in test mode (execute 'true' command)
   useStdin*: bool = false  ## Whether to read from stdin and pipe to remote command
+  workDir*: string = ""  ## Working directory for remote command execution
 
 # Constants
 const

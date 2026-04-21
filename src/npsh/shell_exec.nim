@@ -2,33 +2,31 @@ import
   std/[osproc, streams, strutils, threadpool],
   ./config, ./common
 
-proc buildSshCommand*(host: Host, command: seq[string]): seq[string] =
+proc buildSshCommand*(host: Host, command: seq[string], cwd: string = ""): seq[string] =
   ## Build SSH command with proper options and remote command.
   var cmd = @["ssh", "-o", "BatchMode=yes"]
 
-  # Add port option if not default
   if host.port != 22:
     cmd.add("-p")
     cmd.add($host.port)
 
-  # Add host connection details
   let targetHost = if host.ip.len > 0: host.ip else: host.hostname
   if host.username.len > 0:
     cmd.add(host.username & "@" & targetHost)
   else:
     cmd.add(targetHost)
 
-  # Add the remote command
-  cmd.add(command.join(" "))
+  let remoteCmd = command.join(" ")
+  if cwd.len > 0:
+    cmd.add("cd " & quoteShell(cwd) & " && " & remoteCmd)
+  else:
+    cmd.add(remoteCmd)
 
   return cmd
 
-proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = "", prefix: string = "", streamStdin: bool = false): int =
+proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = "", prefix: string = "", streamStdin: bool = false, cwd: string = ""): int =
   ## Execute command on a single host via SSH with streaming output.
-  ## Returns exit code (0 for success, non-zero for failure).
-  ## prefix: string to prepend to each line of output (for host identification)
-  ## streamStdin: if true, read from stdin incrementally instead of using stdinData
-  let sshCmd = buildSshCommand(host, command)
+  let sshCmd = buildSshCommand(host, command, cwd)
 
   try:
     let process = startProcess(sshCmd[0], args = sshCmd[1..^1],
@@ -89,10 +87,8 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
     stderr.writeLine(errorMsg)
     return -1
 
-proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = "", streamStdin: bool = false): int =
+proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = "", streamStdin: bool = false, cwd: string = ""): int =
   ## Execute command on multiple hosts concurrently with streaming output.
-  ## stdinData: Data to pipe to the remote command's stdin (only works with single host)
-  ## streamStdin: if true, read from stdin incrementally instead of using stdinData
   ## Returns: 0 if all commands succeeded, 1 if any command failed
 
   # Validate single host when stdin is provided
@@ -112,13 +108,14 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
 
   for host in hosts:
     let prefix = if prefixOutput: formatHostPrefix(host.hostname, maxHostLen) else: ""
-    let hostCopy = host # Capture host by value
-    let commandCopy = command # Capture command by value
-    let stdinDataCopy = stdinData # Capture stdin data by value
-    let prefixCopy = prefix # Capture prefix by value
-    let streamStdinCopy = streamStdin # Capture stream stdin flag by value
+    let hostCopy = host
+    let commandCopy = command
+    let stdinDataCopy = stdinData
+    let prefixCopy = prefix
+    let streamStdinCopy = streamStdin
+    let cwdCopy = cwd
 
-    flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy, streamStdinCopy))
+    flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy, streamStdinCopy, cwdCopy))
 
   # Wait for all executions to complete and collect exit codes
   var overallExitCode = 0
@@ -129,8 +126,9 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
 
   return overallExitCode
 
-proc executeDryRun*(hosts: seq[string], command: seq[string], prefixOutput: bool) =
+proc executeDryRun*(hosts: seq[string], command: seq[string], prefixOutput: bool, cwd: string = "") =
   ## Show what would be executed in dry run mode.
   echo "DRY RUN - Would execute: ", command.join(" ")
   echo "DRY RUN - On hosts: ", hosts.join(", ")
+  echo "DRY RUN - Working directory: ", cwd
   echo "DRY RUN - Prefix output: ", prefixOutput
