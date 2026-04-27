@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>src/npsh/common</title>
+<title>npsh/common</title>
 
 <!-- Google fonts -->
 <link href='https://fonts.googleapis.com/css?family=Lato:400,600,900' rel='stylesheet' type='text/css'/>
@@ -16,15 +16,18 @@
 <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4QQQEwksSS9ZWwAAAk1JREFUWMPtll2ITVEUx39nn/O7Y5qR8f05wtCUUr6ZIS++8pEnkZInPImneaCQ5METNdOkeFBKUhMPRIkHKfEuUZSUlGlKPN2TrgfncpvmnntnmlEyq1Z7t89/rf9a6+y99oZxGZf/XeIq61EdtgKXgdXA0xrYAvBjOIF1AI9zvjcC74BSpndrJPkBWDScTF8Aa4E3wDlgHbASaANmVqlcCnwHvgDvgVfAJ+AikAAvgfVZwLnSVZHZaOuKoQi3ZOMi4NkYkpe1p4J7A8BpYAD49hfIy/oqG0+hLomiKP2L5L+1ubn5115S+3OAn4EnwBlgMzCjyt6ZAnQCJ4A7wOs88iRJHvw50HoujuPBoCKwHWiosy8MdfZnAdcHk8dxXFJ3VQbQlCTJvRBCGdRbD4M6uc5glpY3eAihpN5S5w12diSEcCCEcKUO4ljdr15T76ur1FDDLIQQ3qv71EdDOe3Kxj3leRXyk+pxdWnFWod6Wt2bY3de3aSuUHcPBVimHs7mK9WrmeOF6lR1o9qnzskh2ar2qm1qizpfXaPeVGdlmGN5pb09qMxz1Xb1kLqgzn1RyH7JUXW52lr5e/Kqi9qpto7V1atuUzfnARrV7jEib1T76gG2qxdGmXyiekkt1GswPTtek0aBfJp6YySGBfWg2tPQ0FAYgf1stUfdmdcjarbYJEniKIq6gY/Aw+zWHAC+p2labGpqiorFYgGYCEzN7oQdQClN07O1/EfDyGgC0ALMBdYAi4FyK+4H3gLPsxfR1zRNi+NP7nH5J+QntnXe5B5mpfQAAAAASUVORK5CYII=">
 
 <!-- CSS -->
-<link rel="stylesheet" type="text/css" href="../nimdoc.out.css?v=2.2.6">
+<link rel="stylesheet" type="text/css" href="../nimdoc.out.css?v=2.2.10">
 
 <!-- JS -->
-<script type="text/javascript" src="../dochack.js?v=2.2.6"></script>
+<script type="text/javascript" src="../dochack.js?v=2.2.10"></script>
 </head>
 <body>
   <div class="document" id="documentId">
+    <input type="checkbox" id="nav-toggle" hidden>
+    <label for="nav-toggle" id="nav-burger">&#9776;</label>
+    <label for="nav-toggle" id="nav-overlay"></label>
     <div class="container">
-      <h1 class="title">src/npsh/common</h1>
+      <h1 class="title">npsh/common</h1>
       <div class="row">
   <div class="three columns">
     <div class="theme-select-wrapper">
@@ -63,6 +66,7 @@
 <li><a class="reference" href="#runOnAllHosts" title="runOnAllHosts: bool = false">runOnAllHosts</a></li>
 <li><a class="reference" href="#testMode" title="testMode: bool = false">testMode</a></li>
 <li><a class="reference" href="#useStdin" title="useStdin: bool = false">useStdin</a></li>
+<li><a class="reference" href="#workDir" title="workDir: string = &quot;&quot;">workDir</a></li>
 
     </ul>
   </details>
@@ -118,7 +122,7 @@
   <h1><a class="toc-backref" href="#8">Vars</a></h1>
   <dl class="item">
     <div id="dryRun">
-  <dt><pre><a href="common.html#dryRun"><span class="Identifier">dryRun</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
+  <dt><pre><a href="#dryRun"><span class="Identifier">dryRun</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
   <dd>
     
     Whether to perform a dry run (just show what would be done)
@@ -128,7 +132,7 @@
   </dd>
 </div>
 <div id="prefixOutput">
-  <dt><pre><a href="common.html#prefixOutput"><span class="Identifier">prefixOutput</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
+  <dt><pre><a href="#prefixOutput"><span class="Identifier">prefixOutput</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
   <dd>
     
     Whether to prefix output with host names
@@ -138,7 +142,7 @@
   </dd>
 </div>
 <div id="runOnAllHosts">
-  <dt><pre><a href="common.html#runOnAllHosts"><span class="Identifier">runOnAllHosts</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
+  <dt><pre><a href="#runOnAllHosts"><span class="Identifier">runOnAllHosts</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
   <dd>
     
     Whether to run command on all configured hosts
@@ -148,7 +152,7 @@
   </dd>
 </div>
 <div id="testMode">
-  <dt><pre><a href="common.html#testMode"><span class="Identifier">testMode</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
+  <dt><pre><a href="#testMode"><span class="Identifier">testMode</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
   <dd>
     
     Whether to run in test mode (execute 'true' command)
@@ -158,12 +162,22 @@
   </dd>
 </div>
 <div id="useStdin">
-  <dt><pre><a href="common.html#useStdin"><span class="Identifier">useStdin</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
+  <dt><pre><a href="#useStdin"><span class="Identifier">useStdin</span></a><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span></pre></dt>
   <dd>
     
     Whether to read from stdin and pipe to remote command
     <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L12" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
 <a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L12" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+
+  </dd>
+</div>
+<div id="workDir">
+  <dt><pre><a href="#workDir"><span class="Identifier">workDir</span></a><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span></pre></dt>
+  <dd>
+    
+    Working directory for remote command execution
+    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L13" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L13" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -174,22 +188,22 @@
   <h1><a class="toc-backref" href="#10">Consts</a></h1>
   <dl class="item">
     <div id="DefaultConfigPath">
-  <dt><pre><a href="common.html#DefaultConfigPath"><span class="Identifier">DefaultConfigPath</span></a> <span class="Other">=</span> <span class="StringLit">&quot;/home/runner/.npsh&quot;</span></pre></dt>
-  <dd>
-    
-    
-    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L16" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L16" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
-
-  </dd>
-</div>
-<div id="TabWidth">
-  <dt><pre><a href="common.html#TabWidth"><span class="Identifier">TabWidth</span></a> <span class="Other">=</span> <span class="DecNumber">8</span></pre></dt>
+  <dt><pre><a href="#DefaultConfigPath"><span class="Identifier">DefaultConfigPath</span></a> <span class="Other">=</span> <span class="StringLit">&quot;/home/runner/.npsh&quot;</span></pre></dt>
   <dd>
     
     
     <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L17" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
 <a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L17" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+
+  </dd>
+</div>
+<div id="TabWidth">
+  <dt><pre><a href="#TabWidth"><span class="Identifier">TabWidth</span></a> <span class="Other">=</span> <span class="DecNumber">8</span></pre></dt>
+  <dd>
+    
+    
+    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L18" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L18" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -206,8 +220,8 @@
   <dd>
     
     Format hostname prefix with proper alignment.
-    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L26" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L26" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L27" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L27" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -220,8 +234,8 @@
   <dd>
     
     Parse comma-separated host list.
-    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L19" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L19" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L20" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L20" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -234,8 +248,8 @@
   <dd>
     
     Resolve host specifications (hostnames or node IDs) to hostnames.
-    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L30" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L30" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/monofuel/npsh/tree/master/src/npsh/common.nim#L31" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/monofuel/npsh/edit/devel/src/npsh/common.nim#L31" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -251,7 +265,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-01-31 03:37:07 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-04-27 18:49:46 UTC</small>
       </div>
     </div>
   </div>
