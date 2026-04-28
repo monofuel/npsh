@@ -1,5 +1,5 @@
 import
-  std/[unittest, strutils, sequtils],
+  std/[unittest, strutils, sequtils, osproc, streams],
   npsh
 
 suite "Streaming Output Tests":
@@ -71,10 +71,38 @@ suite "Streaming Output Tests":
       check prefixes[0].len == prefixes[i].len
 
   test "streaming with empty command validation":
-    # Test that empty commands are handled
     let hosts = @[newHost("testhost")]
     let command: seq[string] = @[]
-
-    # This should work without actual execution - just tests the parameter passing
-    # The actual execution would require SSH server mocking
     check command.len == 0
+
+suite "Merged Stream Tests":
+
+  test "poStdErrToStdOut captures both stdout and stderr":
+    let process = startProcess("bash", args = @["-c", "echo out1; echo err1 >&2; echo out2"],
+                              options = {poUsePath, poStdErrToStdOut})
+    let outputStream = process.outputStream
+    var lines: seq[string] = @[]
+    var line: string
+    while outputStream.readLine(line):
+      lines.add(line)
+    discard process.waitForExit()
+    process.close()
+    check lines.len == 3
+    check "out1" in lines
+    check "err1" in lines
+    check "out2" in lines
+
+  test "merged streams do not deadlock with large stderr":
+    ## Produces >64KB of stderr alongside stdout to verify no pipe deadlock.
+    let process = startProcess("bash",
+      args = @["-c", "for i in $(seq 1 2000); do echo stdout_$i; echo stderr_$i >&2; done"],
+      options = {poUsePath, poStdErrToStdOut})
+    let outputStream = process.outputStream
+    var lineCount = 0
+    var line: string
+    while outputStream.readLine(line):
+      lineCount += 1
+    let exitCode = process.waitForExit()
+    process.close()
+    check exitCode == 0
+    check lineCount == 4000

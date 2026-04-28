@@ -1,6 +1,8 @@
 import
-  std/[osproc, streams, strutils, threadpool],
+  std/[osproc, streams, strutils, threadpool, locks],
   ./config, ./common
+
+var outputLock: Lock
 
 proc buildSshCommand*(host: Host, command: seq[string], cwd: string = "", envPrefix: string = ""): seq[string] =
   ## Build SSH command with proper options and remote command.
@@ -30,18 +32,13 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
 
   try:
     let process = startProcess(sshCmd[0], args = sshCmd[1..^1],
-                              options = {poUsePath})
+                              options = {poUsePath, poStdErrToStdOut})
     let outputStream = process.outputStream
-    let errorStream = process.errorStream
 
-    # Handle stdin data
     if stdinData.len > 0:
-      # Write pre-read stdin data
       process.inputStream.write(stdinData)
       process.inputStream.close()
     elif streamStdin:
-      # Stream stdin in a separate thread
-      # We need to create a proper thread procedure that doesn't capture closures
       type StdinThreadData = ref object
         inputStream: Stream
 
@@ -52,7 +49,6 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
             data.inputStream.writeLine(stdinLine)
           data.inputStream.close()
         except OSError:
-          # Handle stdin read errors gracefully
           try:
             data.inputStream.close()
           except:
@@ -62,19 +58,13 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
       var stdinThread: Thread[StdinThreadData]
       createThread(stdinThread, stdinThreadProc, threadData)
 
-    # Stream stdout line by line
     var outputLine: string
     while outputStream.readLine(outputLine):
-      if prefix.len > 0:
-        stdout.write(prefix)
-      stdout.writeLine(outputLine)
-
-    # Stream stderr line by line
-    var errorLine: string
-    while errorStream.readLine(errorLine):
-      if prefix.len > 0:
-        stderr.write(prefix)
-      stderr.writeLine(errorLine)
+      let wholeLine = if prefix.len > 0: prefix & outputLine & "\n"
+                      else: outputLine & "\n"
+      withLock outputLock:
+        stdout.write(wholeLine)
+        stdout.flushFile()
 
     let exitCode = process.waitForExit()
     process.close()
@@ -82,9 +72,11 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
     return exitCode
   except OSError:
     let errorMsg = "SSH connection failed: " & getCurrentExceptionMsg()
-    if prefix.len > 0:
-      stderr.write(prefix)
-    stderr.writeLine(errorMsg)
+    let wholeLine = if prefix.len > 0: prefix & errorMsg & "\n"
+                    else: errorMsg & "\n"
+    withLock outputLock:
+      stderr.write(wholeLine)
+      stderr.flushFile()
     return -1
 
 proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = "", streamStdin: bool = false, cwd: string = "", envPrefix: string = ""): int =
@@ -103,7 +95,7 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
   for host in hosts:
     maxHostLen = max(maxHostLen, host.hostname.len)
 
-  # Spawn concurrent execution using threadpool
+  initLock(outputLock)
   var flows: seq[FlowVar[int]] = @[]
 
   for host in hosts:
@@ -118,13 +110,13 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
 
     flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy, streamStdinCopy, cwdCopy, envPrefixCopy))
 
-  # Wait for all executions to complete and collect exit codes
   var overallExitCode = 0
   for flow in flows:
     let exitCode = ^flow
     if exitCode != 0:
       overallExitCode = 1
 
+  deinitLock(outputLock)
   return overallExitCode
 
 proc executeDryRun*(hosts: seq[string], command: seq[string], prefixOutput: bool, cwd: string = "", envPrefix: string = "") =
