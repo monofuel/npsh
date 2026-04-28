@@ -33,9 +33,15 @@
 <li><a class="reference external"
           data-doc-search-tag="config: proc assignNodeIds(hosts: var seq[Host])" href="npsh/config.html#assignNodeIds%2Cseq%5BHost%5D">config: proc assignNodeIds(hosts: var seq[Host])</a></li>
           </ul></dd>
+<dt><a name="buildEnvPrefix" href="#buildEnvPrefix"><span>buildEnvPrefix:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="common: proc buildEnvPrefix(forwardAll: bool; vars: seq[string]): string" href="npsh/common.html#buildEnvPrefix%2Cbool%2Cseq%5Bstring%5D">common: proc buildEnvPrefix(forwardAll: bool; vars: seq[string]): string</a></li>
+          </ul></dd>
 <dt><a name="buildSshCommand" href="#buildSshCommand"><span>buildSshCommand:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="shell_exec: proc buildSshCommand(host: Host; command: seq[string]; cwd: string = &quot;&quot;): seq[string]" href="npsh/shell_exec.html#buildSshCommand%2CHost%2Cseq%5Bstring%5D%2Cstring">shell_exec: proc buildSshCommand(host: Host; command: seq[string]; cwd: string = &quot;&quot;): seq[string]</a></li>
+          data-doc-search-tag="shell_exec: proc buildSshCommand(host: Host; command: seq[string]; cwd: string = &quot;&quot;;
+                envPrefix: string = &quot;&quot;): seq[string]" href="npsh/shell_exec.html#buildSshCommand%2CHost%2Cseq%5Bstring%5D%2Cstring%2Cstring">shell_exec: proc buildSshCommand(host: Host; command: seq[string]; cwd: string = &quot;&quot;;
+                envPrefix: string = &quot;&quot;): seq[string]</a></li>
           </ul></dd>
 <dt><a name="DefaultConfigPath" href="#DefaultConfigPath"><span>DefaultConfigPath:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -45,19 +51,27 @@
 <li><a class="reference external"
           data-doc-search-tag="common: var dryRun" href="npsh/common.html#dryRun">common: var dryRun</a></li>
           </ul></dd>
+<dt><a name="envAll" href="#envAll"><span>envAll:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="common: var envAll" href="npsh/common.html#envAll">common: var envAll</a></li>
+          </ul></dd>
+<dt><a name="EnvBlacklist" href="#EnvBlacklist"><span>EnvBlacklist:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="common: const EnvBlacklist" href="npsh/common.html#EnvBlacklist">common: const EnvBlacklist</a></li>
+          </ul></dd>
 <dt><a name="executeDryRun" href="#executeDryRun"><span>executeDryRun:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="shell_exec: proc executeDryRun(hosts: seq[string]; command: seq[string]; prefixOutput: bool;
-              cwd: string = &quot;&quot;)" href="npsh/shell_exec.html#executeDryRun%2Cseq%5Bstring%5D%2Cseq%5Bstring%5D%2Cbool%2Cstring">shell_exec: proc executeDryRun(hosts: seq[string]; command: seq[string]; prefixOutput: bool;
-              cwd: string = &quot;&quot;)</a></li>
+              cwd: string = &quot;&quot;; envPrefix: string = &quot;&quot;)" href="npsh/shell_exec.html#executeDryRun%2Cseq%5Bstring%5D%2Cseq%5Bstring%5D%2Cbool%2Cstring%2Cstring">shell_exec: proc executeDryRun(hosts: seq[string]; command: seq[string]; prefixOutput: bool;
+              cwd: string = &quot;&quot;; envPrefix: string = &quot;&quot;)</a></li>
           </ul></dd>
 <dt><a name="executeOnHosts" href="#executeOnHosts"><span>executeOnHosts:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="shell_exec: proc executeOnHosts(hosts: seq[Host]; command: seq[string]; prefixOutput: bool;
                stdinData: string = &quot;&quot;; streamStdin: bool = false;
-               cwd: string = &quot;&quot;): int" href="npsh/shell_exec.html#executeOnHosts%2Cseq%5BHost%5D%2Cseq%5Bstring%5D%2Cbool%2Cstring%2Cbool%2Cstring">shell_exec: proc executeOnHosts(hosts: seq[Host]; command: seq[string]; prefixOutput: bool;
+               cwd: string = &quot;&quot;; envPrefix: string = &quot;&quot;): int" href="npsh/shell_exec.html#executeOnHosts%2Cseq%5BHost%5D%2Cseq%5Bstring%5D%2Cbool%2Cstring%2Cbool%2Cstring%2Cstring">shell_exec: proc executeOnHosts(hosts: seq[Host]; command: seq[string]; prefixOutput: bool;
                stdinData: string = &quot;&quot;; streamStdin: bool = false;
-               cwd: string = &quot;&quot;): int</a></li>
+               cwd: string = &quot;&quot;; envPrefix: string = &quot;&quot;): int</a></li>
           </ul></dd>
 <dt><a name="formatHostPrefix" href="#formatHostPrefix"><span>formatHostPrefix:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -74,6 +88,10 @@
 <dt><a name="newHost" href="#newHost"><span>newHost:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="config: proc newHost(hostname: string; ip = &quot;&quot;; port = 22; username = &quot;&quot;; nodeId = -1): Host" href="npsh/config.html#newHost%2Cstring%2Cstring%2Cint%2Cstring%2Cint">config: proc newHost(hostname: string; ip = &quot;&quot;; port = 22; username = &quot;&quot;; nodeId = -1): Host</a></li>
+          </ul></dd>
+<dt><a name="noEnv" href="#noEnv"><span>noEnv:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="common: var noEnv" href="npsh/common.html#noEnv">common: var noEnv</a></li>
           </ul></dd>
 <dt><a name="parseHostLine" href="#parseHostLine"><span>parseHostLine:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -99,9 +117,9 @@
 <li><a class="reference external"
           data-doc-search-tag="shell_exec: proc streamExecuteOnHost(host: Host; command: seq[string]; stdinData: string = &quot;&quot;;
                     prefix: string = &quot;&quot;; streamStdin: bool = false;
-                    cwd: string = &quot;&quot;): int" href="npsh/shell_exec.html#streamExecuteOnHost%2CHost%2Cseq%5Bstring%5D%2Cstring%2Cstring%2Cbool%2Cstring">shell_exec: proc streamExecuteOnHost(host: Host; command: seq[string]; stdinData: string = &quot;&quot;;
+                    cwd: string = &quot;&quot;; envPrefix: string = &quot;&quot;): int" href="npsh/shell_exec.html#streamExecuteOnHost%2CHost%2Cseq%5Bstring%5D%2Cstring%2Cstring%2Cbool%2Cstring%2Cstring">shell_exec: proc streamExecuteOnHost(host: Host; command: seq[string]; stdinData: string = &quot;&quot;;
                     prefix: string = &quot;&quot;; streamStdin: bool = false;
-                    cwd: string = &quot;&quot;): int</a></li>
+                    cwd: string = &quot;&quot;; envPrefix: string = &quot;&quot;): int</a></li>
           </ul></dd>
 <dt><a name="TabWidth" href="#TabWidth"><span>TabWidth:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -123,7 +141,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-04-27 18:49:46 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-04-28 19:20:04 UTC</small>
       </div>
     </div>
   </div>

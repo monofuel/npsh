@@ -5,8 +5,12 @@ nim	dryRun	npsh/common.html#dryRun	var dryRun		10
 nim	testMode	npsh/common.html#testMode	var testMode		11
 nim	useStdin	npsh/common.html#useStdin	var useStdin		12
 nim	workDir	npsh/common.html#workDir	var workDir		13
-nim	DefaultConfigPath	npsh/common.html#DefaultConfigPath	const DefaultConfigPath		17
-nim	TabWidth	npsh/common.html#TabWidth	const TabWidth		18
-nim	parseHosts	npsh/common.html#parseHosts,string	proc parseHosts(hostsStr: string): seq[string]		20
-nim	formatHostPrefix	npsh/common.html#formatHostPrefix,string,int	proc formatHostPrefix(hostname: string; maxHostLen: int): string		27
-nim	resolveHosts	npsh/common.html#resolveHosts,seq[string],seq[Host]	proc resolveHosts(hostSpecs: seq[string]; allHosts: seq[Host]): seq[string]		31
+nim	envAll	npsh/common.html#envAll	var envAll		14
+nim	noEnv	npsh/common.html#noEnv	var noEnv		15
+nim	DefaultConfigPath	npsh/common.html#DefaultConfigPath	const DefaultConfigPath		19
+nim	TabWidth	npsh/common.html#TabWidth	const TabWidth		20
+nim	EnvBlacklist	npsh/common.html#EnvBlacklist	const EnvBlacklist		21
+nim	parseHosts	npsh/common.html#parseHosts,string	proc parseHosts(hostsStr: string): seq[string]		29
+nim	formatHostPrefix	npsh/common.html#formatHostPrefix,string,int	proc formatHostPrefix(hostname: string; maxHostLen: int): string		36
+nim	resolveHosts	npsh/common.html#resolveHosts,seq[string],seq[Host]	proc resolveHosts(hostSpecs: seq[string]; allHosts: seq[Host]): seq[string]		40
+nim	buildEnvPrefix	npsh/common.html#buildEnvPrefix,bool,seq[string]	proc buildEnvPrefix(forwardAll: bool; vars: seq[string]): string		68
