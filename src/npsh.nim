@@ -34,6 +34,9 @@ proc main() =
     echo "    -d, --dry-run: show what would be done without executing"
     echo "    -i, --stdin: read from stdin and pipe to remote command (single host only)"
     echo "    -C, --cwd <dir>: set working directory on remote hosts (default: current directory)"
+    echo "    -e <VAR=val|VAR>: set or forward an env var to remote hosts (repeatable)"
+    echo "    --env-all: forward all env vars to remote hosts (minus blacklist)"
+    echo "    --no-env: disable env var forwarding entirely"
     echo "    --test: test SSH connectivity by running 'true' command"
     echo "  command: command to run on remote hosts (not required with --test)"
     echo ""
@@ -43,6 +46,7 @@ proc main() =
   var hosts: seq[string]
   var hostArgIndex = -1
   var commandArgs: seq[string]
+  var envVarArgs: seq[string] = @[]
 
   # First pass: parse all options and collect non-option arguments
   var i = 0
@@ -75,6 +79,9 @@ proc main() =
         echo "    -d, --dry-run: show what would be done without executing"
         echo "    -i, --stdin: read from stdin and pipe to remote command (single host only)"
         echo "    -C, --cwd <dir>: set working directory on remote hosts (default: current directory)"
+        echo "    -e <VAR=val|VAR>: set or forward an env var to remote hosts (repeatable)"
+        echo "    --env-all: forward all env vars to remote hosts (minus blacklist)"
+        echo "    --no-env: disable env var forwarding entirely"
         echo "    --test: test SSH connectivity by running 'true' command"
         echo "    -h, --help: show this help message"
         echo "  command: command to run on remote hosts (not required with --test)"
@@ -89,6 +96,16 @@ proc main() =
           quit(1)
         i += 1
         workDir = args[i]
+      of "-e":
+        if i + 1 >= args.len:
+          echo "Error: -e requires a VAR=value or VAR argument"
+          quit(1)
+        i += 1
+        envVarArgs.add(args[i])
+      of "--env-all":
+        envAll = true
+      of "--no-env":
+        noEnv = true
       of "--test":
         testMode = true
       else:
@@ -107,6 +124,15 @@ proc main() =
 
   if workDir.len == 0:
     workDir = getCurrentDir()
+
+  if envAll and noEnv:
+    echo "Error: --env-all and --no-env are mutually exclusive"
+    quit(1)
+  if noEnv and envVarArgs.len > 0:
+    echo "Error: --no-env and -e are mutually exclusive"
+    quit(1)
+
+  let envPrefix = if noEnv: "" else: buildEnvPrefix(envAll, envVarArgs)
 
   # Load all hosts to resolve hostnames/node IDs
   let allHosts = loadConfig()
@@ -140,7 +166,7 @@ proc main() =
 
   # Execute command
   if dryRun:
-    executeDryRun(hosts, command, prefixOutput, workDir)
+    executeDryRun(hosts, command, prefixOutput, workDir, envPrefix)
     if useStdin:
       echo "DRY RUN - Would stream stdin data to remote command"
   else:
@@ -158,7 +184,7 @@ proc main() =
         echo "Error: Host '", hostname, "' not found in configuration"
         quit(1)
 
-    let exitCode = executeOnHosts(hostObjects, command, prefixOutput, streamStdin=useStdin, cwd=workDir)
+    let exitCode = executeOnHosts(hostObjects, command, prefixOutput, streamStdin=useStdin, cwd=workDir, envPrefix=envPrefix)
     quit(exitCode)
 
 when isMainModule:

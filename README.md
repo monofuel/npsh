@@ -8,6 +8,8 @@ A parallel shell implementation in Nim that allows you to execute commands on mu
 - Support for hostnames and node IDs with automatic/manual ID assignment
 - Configurable host settings (IP addresses, ports, usernames, custom node IDs)
 - Output prefixing for easy identification with aligned formatting
+- Automatic CWD preservation on remote hosts (assumes shared filesystem)
+- Environment variable forwarding (selective or full)
 - Dry-run mode for testing command execution
 - SSH connectivity testing
 - Stdin streaming and piping (single host only)
@@ -38,6 +40,10 @@ npsh -a --test
 - `-p, --prefix`: Prefix output with host names (aligned formatting)
 - `-d, --dry-run`: Show what would be executed without running
 - `-i, --stdin`: Read from stdin and pipe to remote command (single host only)
+- `-C, --cwd <dir>`: Set working directory on remote hosts (default: current directory)
+- `-e <VAR=val|VAR>`: Set or forward an environment variable to remote hosts (repeatable)
+- `--env-all`: Forward all environment variables to remote hosts (minus blacklist)
+- `--no-env`: Disable environment variable forwarding entirely
 - `--test`: Test SSH connectivity by running 'true' command
 - `-h, --help`: Show help message
 
@@ -64,6 +70,21 @@ echo 'echo "Hello from remote host"' | npsh -i host1 bash
 
 # Stream stdin to a remote command
 npsh -i host1 cat
+
+# Run command in a specific directory on remote hosts
+npsh -C /tmp -a ls
+
+# Forward a specific environment variable
+npsh -e MY_VAR=hello -a printenv MY_VAR
+
+# Forward an existing local variable by name
+npsh -e HOME -a printenv HOME
+
+# Forward all environment variables (minus blacklist)
+npsh --env-all -a printenv EDITOR
+
+# Forward all env vars but override one
+npsh --env-all -e EDITOR=vim -a printenv EDITOR
 ```
 
 ## Configuration
@@ -115,6 +136,24 @@ npsh uses Nim's thread pool to execute commands concurrently across multiple hos
 - Commands output is streamed in real-time from all hosts simultaneously
 - When using `-p/--prefix`, output from each host is prefixed with the hostname and aligned for easy reading
 - Exit codes are collected from all hosts, with the overall exit code indicating success (0) only if all host commands succeeded
+
+### CWD Preservation
+
+By default, npsh preserves your local working directory on remote hosts by prepending `cd <cwd>` to the remote command. This assumes a shared filesystem (NFS, Syncthing, etc.) with the same directory structure across hosts. If the directory doesn't exist on a remote host, that host fails with an error while others continue.
+
+Use `-C <dir>` to override the remote working directory.
+
+### Environment Variable Forwarding
+
+npsh can forward environment variables to remote hosts using `env` prefix syntax:
+
+- `-e FOO=bar`: Set an explicit variable on remote hosts
+- `-e FOO`: Forward the local value of `FOO`
+- `--env-all`: Forward all local env vars (minus a blacklist)
+- `--env-all -e FOO=override`: Forward all, but override specific vars
+- `--no-env`: Disable forwarding entirely
+
+The `--env-all` blacklist excludes variables that are inherently local: SSH session vars (`SSH_CLIENT`, `SSH_AUTH_SOCK`, etc.), desktop session vars (`DISPLAY`, `DBUS_SESSION_BUS_ADDRESS`, `XDG_RUNTIME_DIR`, etc.), path vars that differ across distros (`PATH`, `LD_LIBRARY_PATH`, `NIX_PATH`), and any vars starting with `NPSH_`.
 
 ### Stdin Handling
 

@@ -2,7 +2,7 @@ import
   std/[osproc, streams, strutils, threadpool],
   ./config, ./common
 
-proc buildSshCommand*(host: Host, command: seq[string], cwd: string = ""): seq[string] =
+proc buildSshCommand*(host: Host, command: seq[string], cwd: string = "", envPrefix: string = ""): seq[string] =
   ## Build SSH command with proper options and remote command.
   var cmd = @["ssh", "-o", "BatchMode=yes"]
 
@@ -16,7 +16,7 @@ proc buildSshCommand*(host: Host, command: seq[string], cwd: string = ""): seq[s
   else:
     cmd.add(targetHost)
 
-  let remoteCmd = command.join(" ")
+  let remoteCmd = envPrefix & command.join(" ")
   if cwd.len > 0:
     cmd.add("cd " & quoteShell(cwd) & " && " & remoteCmd)
   else:
@@ -24,9 +24,9 @@ proc buildSshCommand*(host: Host, command: seq[string], cwd: string = ""): seq[s
 
   return cmd
 
-proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = "", prefix: string = "", streamStdin: bool = false, cwd: string = ""): int =
+proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = "", prefix: string = "", streamStdin: bool = false, cwd: string = "", envPrefix: string = ""): int =
   ## Execute command on a single host via SSH with streaming output.
-  let sshCmd = buildSshCommand(host, command, cwd)
+  let sshCmd = buildSshCommand(host, command, cwd, envPrefix)
 
   try:
     let process = startProcess(sshCmd[0], args = sshCmd[1..^1],
@@ -87,7 +87,7 @@ proc streamExecuteOnHost*(host: Host, command: seq[string], stdinData: string = 
     stderr.writeLine(errorMsg)
     return -1
 
-proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = "", streamStdin: bool = false, cwd: string = ""): int =
+proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool, stdinData: string = "", streamStdin: bool = false, cwd: string = "", envPrefix: string = ""): int =
   ## Execute command on multiple hosts concurrently with streaming output.
   ## Returns: 0 if all commands succeeded, 1 if any command failed
 
@@ -114,8 +114,9 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
     let prefixCopy = prefix
     let streamStdinCopy = streamStdin
     let cwdCopy = cwd
+    let envPrefixCopy = envPrefix
 
-    flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy, streamStdinCopy, cwdCopy))
+    flows.add(spawn streamExecuteOnHost(hostCopy, commandCopy, stdinDataCopy, prefixCopy, streamStdinCopy, cwdCopy, envPrefixCopy))
 
   # Wait for all executions to complete and collect exit codes
   var overallExitCode = 0
@@ -126,9 +127,11 @@ proc executeOnHosts*(hosts: seq[Host], command: seq[string], prefixOutput: bool,
 
   return overallExitCode
 
-proc executeDryRun*(hosts: seq[string], command: seq[string], prefixOutput: bool, cwd: string = "") =
+proc executeDryRun*(hosts: seq[string], command: seq[string], prefixOutput: bool, cwd: string = "", envPrefix: string = "") =
   ## Show what would be executed in dry run mode.
   echo "DRY RUN - Would execute: ", command.join(" ")
   echo "DRY RUN - On hosts: ", hosts.join(", ")
   echo "DRY RUN - Working directory: ", cwd
+  if envPrefix.len > 0:
+    echo "DRY RUN - Env prefix: ", envPrefix
   echo "DRY RUN - Prefix output: ", prefixOutput

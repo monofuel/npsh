@@ -60,6 +60,21 @@ suite "Shell Execution Tests":
     let cmd = buildSshCommand(host, @["make", "build"], "/home/deploy/project")
     check cmd == @["ssh", "-o", "BatchMode=yes", "-p", "2222", "deploy@10.0.0.1", "cd /home/deploy/project && make build"]
 
+  test "buildSshCommand with env prefix":
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls", "-la"], envPrefix="env FOO=bar ")
+    check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "env FOO=bar ls -la"]
+
+  test "buildSshCommand with cwd and env prefix":
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls", "-la"], cwd="/tmp", envPrefix="env FOO=bar ")
+    check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "cd /tmp && env FOO=bar ls -la"]
+
+  test "buildSshCommand with empty env prefix":
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls", "-la"], envPrefix="")
+    check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "ls -la"]
+
   test "executeDryRun output format":
     let hosts = @["host1", "host2", "host3"]
     let command = @["ls", "-la"]

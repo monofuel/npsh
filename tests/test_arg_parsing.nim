@@ -89,3 +89,39 @@ suite "Argument Parsing Tests":
   test "cwd option missing argument":
     let exitCode = runNpshWithArgs(@["-C"])
     check exitCode == 1
+
+  test "env var explicit value":
+    let exitCode = runNpshWithArgs(@["-d", "-e", "FOO=bar", "-a", "ls"])
+    check exitCode == 0
+
+  test "env var by name":
+    let exitCode = runNpshWithArgs(@["-d", "-e", "HOME", "-a", "ls"])
+    check exitCode == 0
+
+  test "multiple env vars":
+    let exitCode = runNpshWithArgs(@["-d", "-e", "FOO=bar", "-e", "BAZ=qux", "-a", "ls"])
+    check exitCode == 0
+
+  test "env-all option":
+    let exitCode = runNpshWithArgs(@["-d", "--env-all", "-a", "ls"])
+    check exitCode == 0
+
+  test "no-env option":
+    let exitCode = runNpshWithArgs(@["-d", "--no-env", "-a", "ls"])
+    check exitCode == 0
+
+  test "env-all with no-env is error":
+    let exitCode = runNpshWithArgs(@["-d", "--env-all", "--no-env", "-a", "ls"])
+    check exitCode == 1
+
+  test "no-env with -e is error":
+    let exitCode = runNpshWithArgs(@["-d", "--no-env", "-e", "FOO=bar", "-a", "ls"])
+    check exitCode == 1
+
+  test "env-all with override":
+    let exitCode = runNpshWithArgs(@["-d", "--env-all", "-e", "HOME=/override", "-a", "ls"])
+    check exitCode == 0
+
+  test "-e missing argument":
+    let exitCode = runNpshWithArgs(@["-e"])
+    check exitCode == 1

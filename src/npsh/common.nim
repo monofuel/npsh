@@ -11,11 +11,20 @@ var
   testMode*: bool = false  ## Whether to run in test mode (execute 'true' command)
   useStdin*: bool = false  ## Whether to read from stdin and pipe to remote command
   workDir*: string = ""  ## Working directory for remote command execution
+  envAll*: bool = false  ## Whether to forward all env vars to remote hosts
+  noEnv*: bool = false  ## Whether to disable env var forwarding entirely
 
 # Constants
 const
   DefaultConfigPath* = getHomeDir() / ".npsh"
   TabWidth* = 8
+  EnvBlacklist* = [
+    "SSH_CLIENT", "SSH_CONNECTION", "SSH_TTY", "SSH_AUTH_SOCK", "SSH_AGENT_PID",
+    "DISPLAY", "WINDOWID", "TERM_SESSION_ID",
+    "XDG_RUNTIME_DIR", "XDG_SESSION_ID", "XDG_SEAT", "XDG_VTNR",
+    "DBUS_SESSION_BUS_ADDRESS",
+    "PATH", "LD_LIBRARY_PATH", "NIX_PATH",
+  ]
 
 proc parseHosts*(hostsStr: string): seq[string] =
   ## Parse comma-separated host list.
@@ -55,3 +64,33 @@ proc resolveHosts*(hostSpecs: seq[string], allHosts: seq[Host]): seq[string] =
         raise newException(ValueError, "Node ID not found: " & spec)
       else:
         raise newException(ValueError, "Host not found: " & spec)
+
+proc buildEnvPrefix*(forwardAll: bool, vars: seq[string]): string =
+  ## Build env var prefix string for remote command.
+  var envMap: seq[(string, string)] = @[]
+
+  if forwardAll:
+    for key, val in envPairs():
+      if key in EnvBlacklist or key.startsWith("NPSH_"):
+        continue
+      envMap.add((key, val))
+
+  for v in vars:
+    let eqPos = v.find('=')
+    let key = if eqPos >= 0: v[0 ..< eqPos] else: v
+    let val = if eqPos >= 0: v[eqPos + 1 .. ^1] else: getEnv(v)
+    var found = false
+    for i in 0 ..< envMap.len:
+      if envMap[i][0] == key:
+        envMap[i] = (key, val)
+        found = true
+        break
+    if not found:
+      envMap.add((key, val))
+
+  if envMap.len == 0:
+    return ""
+  var parts: seq[string] = @[]
+  for (key, val) in envMap:
+    parts.add(quoteShell(key & "=" & val))
+  return "env " & parts.join(" ") & " "
