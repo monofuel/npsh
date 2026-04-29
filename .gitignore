@@ -3,6 +3,9 @@
 !*/
 !*.*
 
+# test SSH keypair (generated at build time)
+tests/docker/id_ed25519*
+
 # normal ignores:
 *.exe
 nimcache

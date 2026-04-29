@@ -1,5 +1,5 @@
 import
-  std/[unittest],
+  std/[unittest, os],
   npsh,
   npsh/config
 
@@ -74,6 +74,25 @@ suite "Shell Execution Tests":
     let host = newHost("testhost")
     let cmd = buildSshCommand(host, @["ls", "-la"], envPrefix="")
     check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "ls -la"]
+
+  test "buildSshCommand with NPSH_SSH_OPTS":
+    putEnv("NPSH_SSH_OPTS", "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null")
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls"])
+    check cmd[0] == "ssh"
+    check cmd[1] == "-o"
+    check cmd[2] == "BatchMode=yes"
+    check "-o" in cmd[3..^1]
+    check "StrictHostKeyChecking=no" in cmd
+    check "UserKnownHostsFile=/dev/null" in cmd
+    check cmd[^1] == "ls"
+    delEnv("NPSH_SSH_OPTS")
+
+  test "buildSshCommand without NPSH_SSH_OPTS":
+    delEnv("NPSH_SSH_OPTS")
+    let host = newHost("testhost")
+    let cmd = buildSshCommand(host, @["ls"])
+    check cmd == @["ssh", "-o", "BatchMode=yes", "testhost", "ls"]
 
   test "executeDryRun output format":
     let hosts = @["host1", "host2", "host3"]

@@ -1,0 +1,18 @@
+services:
+  node0:
+    build: .
+    ports:
+      - "2220:22"
+    hostname: node0
+
+  node1:
+    build: .
+    ports:
+      - "2221:22"
+    hostname: node1
+
+  node2:
+    build: .
+    ports:
+      - "2222:22"
+    hostname: node2

@@ -1,5 +1,5 @@
 import
-  std/[osproc, streams, strutils, threadpool, locks],
+  std/[os, osproc, streams, strutils, threadpool, locks],
   ./config, ./common
 
 var outputLock: Lock
@@ -7,6 +7,11 @@ var outputLock: Lock
 proc buildSshCommand*(host: Host, command: seq[string], cwd: string = "", envPrefix: string = ""): seq[string] =
   ## Build SSH command with proper options and remote command.
   var cmd = @["ssh", "-o", "BatchMode=yes"]
+
+  let extraOpts = getEnv("NPSH_SSH_OPTS")
+  if extraOpts.len > 0:
+    for opt in extraOpts.splitWhitespace():
+      cmd.add(opt)
 
   if host.port != 22:
     cmd.add("-p")
